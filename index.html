@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="importmap-type" content="systemjs-importmap" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>singleSpa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- <link rel="icon" href="favicon.ico" /> -->
+    <!-- <link rel="stylesheet" href="/node_modules/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" type="text/css" href="//at.alicdn.com/t/font_2183360_0itekm9095qs.css">
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/mian.css">
+    <link rel="stylesheet" href="/static/index.css"> -->
+    <script>
+      function loadScriptString(code) {
+        var script = document.createElement("script");
+        script.type = "systemjs-importmap";
+        try {
+          script.appendChild(document.createTextNode(code));
+        } catch (ex) {
+          script.text = code;
+        }
+        return script;
+      }
+
+      function sheme() {
+        var protocol = location.protocol;
+        console.log("protocol", protocol);
+        var source = {
+          imports: {
+            nav: protocol + "//localhost:8080/js/app.js",
+            app1: protocol + "//localhost:8081/js/app.js",
+            // "single-spa": "/static/single-spa.min.js",
+            "single-spa": "/static/single-spa.dev.js",
+            vue: "/static/vue3.min.js",
+            "vue-router": "/static/vue-router.global.js",
+            vuex: "/static/vuex4.min.js",
+            "element-ui": "/static/index.js",
+          },
+        };
+        return JSON.stringify(source);
+      }
+      var codeFragment = loadScriptString(sheme());
+      var head = document.getElementsByTagName("head")[0];
+      head.insertBefore(codeFragment, head.childNodes[6]);
+    </script>
+    <!-- <link
+      rel="preload"
+      href="/static/single-spa2.min.js"
+      as="script"
+      crossorigin="anonymous"
+    /> -->
+    <!-- <link
+      rel="preload"
+      href="/static/single-spa.dev.js"
+      as="script"
+      crossorigin="anonymous"
+    /> -->
+    <link
+      rel="preload"
+      href="/static/vue3.min.js"
+      as="script"
+      crossorigin="anonymous"
+    />
+    <script src="/static/import-map-overrides.js"></script>
+    <script src="/static/system.min.js"></script>
+    <script src="/static/amd.min.js"></script>
+    <script src="/static/named-exports.js"></script>
+    <script src="/static/named-register.min.js"></script>
+    <script src="/static/use-default.min.js"></script>
+    <style>
+      body,
+      html {
+        height: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script type="module">
+      import { registerApplication, start } from "/static/single-spa.dev.js";
+      // import { registerApplication, start } from "../single-spa-source-code/lib/es2015/single-spa.dev.js";
+      (function () {
+        Promise.all([
+          // System.import("single-spa"),
+          System.import("vue"),
+          System.import("vue-router"),
+          System.import("vuex"),
+          //   System.import("element-ui"),
+        ]).then(function (modules) {
+          console.log("modules", modules);
+          // var singleSpa = modules[0];
+          var app = Vue.createApp({});
+          var VueRouter = modules[2];
+          var Vuex = modules[3];
+          app.use(VueRouter);
+          app.use(Vuex);
+          // var Vuex = modules[3];
+          // var ElementUI = modules[4];
+          // Vue.use(VueRouter);
+          // Vue.use(Vuex);
+          // Vue.use(ElementUI);
+          /**
+           * 注册应用，两种方式
+           * registerApplication('app1', loadApp(url), activeWhen('/app1'), customProps)
+           * registerApplication({
+           *    name: 'app1',
+           *    app: loadApp(url),
+           *    activeWhen: activeWhen('/app1'),
+           *    customProps: {}
+           * })
+           * @param {*} appNameOrConfig 应用名称或者应用配置对象
+           * @param {*} appOrLoadApp 应用的加载方法，是一个 promise
+           * @param {*} activeWhen 判断应用是否激活的一个方法，方法返回 true or false
+           * @param {*} customProps 传递给子应用的 props 对象
+           */
+          registerApplication(
+            "nav",
+            () => System.import("nav"),
+            (location) => true
+          );
+          registerApplication(
+            "app1",
+            () => System.import("app1"),
+            (location) => true
+          );
+          start();
+        });
+      })();
+    </script>
+    <!-- See https://github.com/joeldenning/import-map-overrides#user-interface  -->
+    <import-map-overrides-full
+      show-when-local-storage="overrides-ui"
+    ></import-map-overrides-full>
+    <!-- 导航容器 -->
+    <div id="root_nav"></div>
+  </body>
+</html>
