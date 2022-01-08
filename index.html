@@ -30,7 +30,7 @@
         var source = {
           imports: {
             nav: protocol + "//localhost:8080/js/app.js",
-            app1: protocol + "//localhost:8081/js/app.js",
+            authority: protocol + "//localhost:8081/js/app.js",
             // "single-spa": "/static/single-spa.min.js",
             "single-spa": "/static/single-spa.dev.js",
             vue: "/static/vue3.min.js",
@@ -118,13 +118,35 @@
           registerApplication(
             "nav",
             () => System.import("nav"),
+            // (location) => location.hash.startsWith("#nav")
             (location) => true
+            // (location) => location.hash.startsWith('nav')
           );
+          // 简单模式
+          // registerApplication(
+          //   "authority",
+          //   () => System.import("authority"),
+          //   // (location) => true
+          //   (location) => location.pathname.startsWith("/authority")
+          // );
+          // 对象模式
           registerApplication(
-            "app1",
-            () => System.import("app1"),
-            (location) => true
+           {
+            name:"authority",
+            app:() => System.import("authority"),
+            // (location) => true
+            activeWhen:"/authority"
+           }
           );
+          // 对象模式中传递数组
+          // registerApplication(
+          //  {
+          //   name:"authority",
+          //   app:() => System.import("authority"),
+          //   // (location) => true
+          //   activeWhen:['/authority', '/test']
+          //  }
+          // );
           start();
         });
       })();

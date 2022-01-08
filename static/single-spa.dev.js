@@ -1239,7 +1239,7 @@ function getAppStatus(appName) {
   return app ? app.status : null;
 }
 /**
- * 注册应用，有两种方式
+ * 注册应用，两种方式
  * registerApplication('app1', loadApp(url), activeWhen('/app1'), customProps)
  * registerApplication({
  *    name: 'app1',
@@ -1460,7 +1460,7 @@ function sanitizeArguments(appNameOrConfig, appOrLoadApp, activeWhen, customProp
 
   registration.customProps = sanitizeCustomProps(registration.customProps); // 保证activeWhen是一个返回boolean值的函数
 
-  registration.activeWhen = sanitizeActiveWhen(registration.activeWhen); // 返回处理后的应用配置对象
+  registration.activeWhen = sanitizeActiveWhen(registration.activeWhen);
 
   return registration;
 } // 保证第二个参数一定是一个返回 promise 的函数
@@ -1484,14 +1484,14 @@ function sanitizeCustomProps(customProps) {
 
 
 function sanitizeActiveWhen(activeWhen) {
-  console.log("activeWhen", activeWhen); // activeWhen 返回一个函数，将location传入 (location) => location.hash.startsWith('#/app1'); 调用后返回一个字符串
+  console.log("传入activeWhen", activeWhen); // activeWhen 返回一个函数，将location传入 (location) => location.hash.startsWith('#/app1'); 调用后返回一个字符串
 
-  let activeWhenArray = Array.isArray(activeWhen) ? activeWhen : [activeWhen];
-  console.log('activeWhenArray', activeWhenArray); // 保证数组中每个元素都是一个函数
-
+  let activeWhenArray = Array.isArray(activeWhen) ? activeWhen : [activeWhen]; // 保证数组中每个元素都是一个函数
+  console.log('判断是否为数组，activeWhenArray',activeWhenArray)
   activeWhenArray = activeWhenArray.map(activeWhenOrPath => typeof activeWhenOrPath === "function" ? activeWhenOrPath // activeWhen如果是一个路径，则保证成一个函数
   : pathToActiveWhen(activeWhenOrPath)); // 返回一个函数，函数返回一个 boolean 值
-
+  console.log('是否匹配上路径',activeWhenArray.some(activeWhen => activeWhen(location)))
+  console.log('location',location)
   return location => activeWhenArray.some(activeWhen => activeWhen(location)); // 调用用户配置的函数，传入location
 } // activeWhen传入的不是函数，而是字符串或者数组，则特殊处理
 // '/app1', '/users/:userId/profile', '/pathname/#/hash' ['/pathname/#/hash', '/app1']
@@ -1499,7 +1499,9 @@ function sanitizeActiveWhen(activeWhen) {
 
 
 function pathToActiveWhen(path, exactMatch) {
-  // 根据用户提供的baseURL，生成正则表达式
+  console.log('path', path);
+  console.log('exactMatch', exactMatch); // 根据用户提供的baseURL，生成正则表达式
+
   const regex = toDynamicPathValidatorRegex(path, exactMatch); // 函数返回boolean值，判断当前路由是否匹配用户给定的路径
 
   return location => {

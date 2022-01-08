@@ -4,6 +4,8 @@
 
 activeWhen API 可以控制页面是否需要加载
 
+以下片段是源码及注释
+
 ```javascript
 // \single-spa-source-code\src\applications :447
 /**
@@ -48,7 +50,51 @@ export function pathToActiveWhen(path, exactMatch) {
 }
 ```
 
-这是两个关键方法，像我目前项目中写的一般都是`(location) => true`，也就是默认加载所有 app.js，single-spa调用`sanitizeActiveWhen`方法时，接收`activeWhen`参数，在\single-spa-source-code\src\applications :434 做了一层校验`validateRegisterWithConfig(appNameOrConfig);`,注意看`validateRegisterWithConfig`函数，其中`allowsStringAndFunction`箭头函数，规范了`activeWhen`必须是**字符串，或者函数或者数组**。
+`sanitizeActiveWhen`与`pathToActiveWhen`是两个关键方法，控制是否需要按需加载 app.js，像我目前项目中写的一般都是`(location) => true`，也就是默认加载所有 app.js，优化点在于`activeWhen`函数，能够实现按需加载（根据路径加载）。
+
+`single-spa`提供了两种挂载方式，分为**简单参数**和**对象参数**。（具体见官方文档 api，有详细说明：https://zh-hans.single-spa.js.org/docs/api）
+
+#### 简单参数
+
+```javascript
+singleSpa.registerApplication(
+  "appName",
+  () => System.import("appName"),
+  (location) => location.pathname.startsWith("appName")
+);
+```
+
+#### 对象参数
+
+```javascript
+singleSpa.registerApplication({
+    name: 'appName',
+    app: () => System.import('appName'),
+    activeWhen: '/appName'
+    customProps: {}
+})
+```
+
+二者区别在于如果选择对象参数时，需要走一层转换`pathToActiveWhen`函数，另外`activeWhen`属性也可以传递数组，一个数组中任何条件为真，则**保留应用活动**。如`activeWhen:['/authority', '/test']`,访问例如`http://localhost:7000/test`,`http://localhost:7000/test`,都能激活应用。作者在源码中也有相应的逻辑，`let activeWhenArray = Array.isArray(activeWhen) ? activeWhen : [activeWhen];`
+
+https://zh-hans.single-spa.js.org/docs/api/#pathtoactivewhen,文档中详细介绍了`pathToActiveWhen`的例子。
+
+`single-spa`规定我们使用按需时传入的格式，具体根据项目情况而定
+
+如采用 Hash 模式：
+
+```javascript
+(location) => location.hash.startsWith("#/app1");
+```
+
+如采用 history 模式：
+
+```javascript
+(location) => location.pathname.startsWith("app1");
+```
+
+若是当前浏览器 URL 与`#/app1`相匹配时（假定使用的是 hash），
+single-spa 调用`sanitizeActiveWhen`方法时，接收`activeWhen`参数，在\single-spa-source-code\src\applications :434 做了一层校验`validateRegisterWithConfig(appNameOrConfig);`,注意看`validateRegisterWithConfig`函数，其中`allowsStringAndFunction`箭头函数，规范和保证了`activeWhen`必须是**字符串，或者函数或者数组**。
 
 ```javascript
 export function validateRegisterWithConfig(config) {
